@@ -176,7 +176,7 @@
         .card {
             background-color: white;
             border-radius: 12px;
-            padding: 15px 20px;
+            padding: 25px 20px; /* 增加上下内边距 */
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             position: absolute;
             overflow: hidden;
@@ -185,12 +185,13 @@
             transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             min-width: 120px;
             max-width: 45%;
-            min-height: 80px;
+            min-height: 100px; /* 增加最小高度 */
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            font-size: 14px;
+            font-size: 16px; /* 增加字体大小 */
+            line-height: 1.5; /* 设置行高以改善文字分布 */
             z-index: 1;
             cursor: pointer;
         }
@@ -203,7 +204,7 @@
         .card::before {
             content: '💖 提示';
             position: absolute;
-            top: -5px;
+            top: 15px;
             left: 10px;
             background-color: rgba(255, 255, 255, 0.9);
             padding: 2px 8px;
@@ -289,8 +290,10 @@
             }
             
             .card {
-                padding: 10px 12px;
-                font-size: 12px;
+                padding: 15px 10px; /* 调整上下内边距 */
+                font-size: 14px; /* 调整字体大小 */
+                line-height: 1.5; /* 设置行高以改善文字分布 */
+                min-height: 90px; /* 增加最小高度 */
                 /* 手机端卡片大小将由JS动态设置 */
             }
             
@@ -557,8 +560,8 @@
             
             // 统一卡牌大小，根据设备类型调整
             const isMobile = window.innerWidth <= 480;
-            const cardWidth = isMobile ? 120 : 160; // 统一宽度
-            const cardHeight = isMobile ? 80 : 100; // 统一高度
+            const cardWidth = isMobile ? 140 : 180; // 增加宽度以容纳更多文字
+            const cardHeight = isMobile ? 100 : 120; // 增加高度以改善上下边距分布
             
             // 设置卡片尺寸
             card.style.width = `${cardWidth}px`;
