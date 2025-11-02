@@ -13,6 +13,8 @@
                 // 自动重定向到引导页
                 window.location.href = 'guide.html';
             } else {
+                // 尝试恢复音乐播放状态
+                restoreMusicState();
                 // 尝试播放背景音乐
                 tryPlayMusic();
                 // 添加用户交互监听以播放音乐
@@ -28,6 +30,31 @@
                 music.play().catch(error => {
                     console.log('音乐播放被阻止:', error);
                 });
+            }
+        }
+        
+        // 保存音乐播放状态并导航到新页面
+        function saveMusicStateAndNavigate(url) {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                // 保存播放时间到sessionStorage
+                sessionStorage.setItem('musicTime', music.currentTime.toString());
+                sessionStorage.setItem('musicPlaying', !music.paused.toString());
+            }
+            window.location.href = url;
+        }
+        
+        // 尝试恢复音乐播放状态
+        function restoreMusicState() {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                // 尝试恢复上次播放时间
+                const savedTime = parseFloat(sessionStorage.getItem('musicTime'));
+                const wasPlaying = sessionStorage.getItem('musicPlaying') === 'true';
+                
+                if (!isNaN(savedTime) && savedTime > 0) {
+                    music.currentTime = savedTime;
+                }
             }
         }
     </script>
@@ -627,7 +654,7 @@
             });
             
             // 尝试播放并设置音量
-            backgroundMusic.volume = 0.3; // 设置适当音量
+            backgroundMusic.volume = 1; // 设置适当音量
             backgroundMusic.play().then(() => {
                 console.log('音乐自动播放成功');
                 musicIcon.textContent = '🎶';
@@ -806,7 +833,7 @@
             font-size: 0.9rem;
             box-shadow: 0 4px 10px rgba(255, 107, 129, 0.3);
             transition: all 0.3s ease;
-        " onclick="window.location.href='guide.html'">
+        " onclick="saveMusicStateAndNavigate('guide.html')">
             ← 返回
         </button>
         
@@ -823,7 +850,7 @@
             box-shadow: 0 6px 15px rgba(123, 104, 238, 0.4);
             transition: all 0.3s ease;
             animation: pulse 2s infinite;
-        " onclick="window.location.href='poem.html'">
+        " onclick="saveMusicStateAndNavigate('poem.html')">
             友谊长诗
         </button>
     </div>

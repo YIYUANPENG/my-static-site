@@ -305,7 +305,12 @@
     <div class="particles"></div>
     
     <!-- 返回按钮 -->
-    <button class="back-button" onclick="window.location.href='index.html?fromGuide=true'">返回主页面</button>
+    <button class="back-button" onclick="saveMusicStateAndNavigate('index.html?fromGuide=true')">返回主页面</button>
+    
+    <!-- 背景音乐 -->
+    <audio id="backgroundMusic" loop>
+        <source src="background_music.mp3" type="audio/mpeg">
+    </audio>
     
     <!-- 主容器 -->
     <div class="container">
@@ -415,7 +420,51 @@
             createStars();
             createClouds();
             createParticles();
+            
+            // 尝试恢复音乐播放
+            restoreMusicState();
+            // 添加用户交互监听以播放音乐
+            document.addEventListener('click', tryPlayMusic, { once: true });
+            document.addEventListener('touchstart', tryPlayMusic, { once: true });
         });
+        
+        // 保存音乐播放状态并导航到新页面
+        function saveMusicStateAndNavigate(url) {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                // 保存播放时间到sessionStorage
+                sessionStorage.setItem('musicTime', music.currentTime.toString());
+                sessionStorage.setItem('musicPlaying', !music.paused.toString());
+            }
+            window.location.href = url;
+        }
+        
+        // 尝试恢复音乐播放状态
+        function restoreMusicState() {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                // 尝试恢复上次播放时间
+                const savedTime = parseFloat(sessionStorage.getItem('musicTime'));
+                const wasPlaying = sessionStorage.getItem('musicPlaying') === 'true';
+                
+                if (!isNaN(savedTime) && savedTime > 0) {
+                    music.currentTime = savedTime;
+                }
+                
+                // 尝试播放音乐
+                tryPlayMusic();
+            }
+        }
+        
+        // 尝试播放背景音乐的函数
+        function tryPlayMusic() {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                music.play().catch(error => {
+                    console.log('音乐播放被阻止:', error);
+                });
+            }
+        }
 
         // 页面离开时的优雅过渡
         window.addEventListener('beforeunload', () => {

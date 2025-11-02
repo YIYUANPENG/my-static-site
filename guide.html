@@ -318,18 +318,45 @@
         // 页面加载完成后创建心形并尝试播放音乐
         window.addEventListener('DOMContentLoaded', () => {
             createHearts();
+            // 尝试恢复音乐播放状态
+            restoreMusicState();
             tryPlayMusic();
             
             // 为页面添加点击事件监听，在用户点击时尝试播放音乐
             document.addEventListener('click', tryPlayMusic, { once: true });
             document.addEventListener('touchstart', tryPlayMusic, { once: true });
         });
-            // 播放音乐并导航到主页面
+            // 保存音乐播放状态并导航到新页面
+        function saveMusicStateAndNavigate(url) {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                // 保存播放时间到sessionStorage
+                sessionStorage.setItem('musicTime', music.currentTime.toString());
+                sessionStorage.setItem('musicPlaying', !music.paused.toString());
+            }
+            window.location.href = url;
+        }
+        
+        // 尝试恢复音乐播放状态
+        function restoreMusicState() {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                // 尝试恢复上次播放时间
+                const savedTime = parseFloat(sessionStorage.getItem('musicTime'));
+                const wasPlaying = sessionStorage.getItem('musicPlaying') === 'true';
+                
+                if (!isNaN(savedTime) && savedTime > 0) {
+                    music.currentTime = savedTime;
+                }
+            }
+        }
+        
+        // 播放音乐并导航到主页面
         function playMusicAndNavigate() {
             tryPlayMusic();
             // 轻微延迟确保音乐有机会开始播放
             setTimeout(() => {
-                window.location.href = 'index.html?fromGuide=true';
+                saveMusicStateAndNavigate('index.html?fromGuide=true');
             }, 100);
         }
         
