@@ -330,9 +330,11 @@
         function saveMusicStateAndNavigate(url) {
             const music = document.getElementById('backgroundMusic');
             if (music) {
-                // 保存播放时间到sessionStorage
+                // 保存播放时间和状态到sessionStorage
                 sessionStorage.setItem('musicTime', music.currentTime.toString());
-                sessionStorage.setItem('musicPlaying', !music.paused.toString());
+                sessionStorage.setItem('musicPlaying', (!music.paused).toString());
+                // 添加标记表示用户已交互，获得了播放权限
+                sessionStorage.setItem('userInteracted', 'true');
             }
             window.location.href = url;
         }
@@ -341,23 +343,38 @@
         function restoreMusicState() {
             const music = document.getElementById('backgroundMusic');
             if (music) {
-                // 尝试恢复上次播放时间
+                // 尝试恢复上次播放时间和状态
                 const savedTime = parseFloat(sessionStorage.getItem('musicTime'));
                 const wasPlaying = sessionStorage.getItem('musicPlaying') === 'true';
+                const userInteracted = sessionStorage.getItem('userInteracted') === 'true';
                 
+                // 设置播放时间
                 if (!isNaN(savedTime) && savedTime > 0) {
                     music.currentTime = savedTime;
+                }
+                
+                // 如果用户已经交互过并且之前音乐在播放，尝试立即播放
+                if (userInteracted && wasPlaying) {
+                    tryPlayMusic();
                 }
             }
         }
         
         // 播放音乐并导航到主页面
         function playMusicAndNavigate() {
-            tryPlayMusic();
-            // 轻微延迟确保音乐有机会开始播放
-            setTimeout(() => {
+            const music = document.getElementById('backgroundMusic');
+            // 直接尝试播放音乐
+            music.play().then(() => {
+                // 标记用户已交互
+                sessionStorage.setItem('userInteracted', 'true');
+                // 保存状态后立即跳转
                 saveMusicStateAndNavigate('index.html?fromGuide=true');
-            }, 100);
+            }).catch(error => {
+                console.log('音乐播放被阻止，直接跳转:', error);
+                // 即使播放失败也保存交互状态并跳转
+                sessionStorage.setItem('userInteracted', 'true');
+                saveMusicStateAndNavigate('index.html?fromGuide=true');
+            });
         }
         
         // 页面离开时的效果
