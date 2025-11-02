@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>温暖瞬间 | 准备好体验惊喜了吗？</title>
+    <!-- 背景音乐 -->
+    <audio id="backgroundMusic" loop>
+        <source src="background_music.mp3" type="audio/mpeg">
+    </audio>
     <style>
         * {
             margin: 0;
@@ -235,7 +239,7 @@
         
         <p>准备好迎接一波温暖的惊喜了吗？</p>
         
-        <button class="enter-button" onclick="window.location.href='index.html?fromGuide=true'">go</button>
+        <button class="enter-button" onclick="playMusicAndNavigate()">GO</button>
     </div>
 
     <div class="footer">用心感受每一份温暖与惊喜</div>
@@ -300,8 +304,34 @@
             }
         }
         
-        // 页面加载完成后创建心形
-        window.addEventListener('DOMContentLoaded', createHearts);
+        // 尝试播放背景音乐的函数
+        function tryPlayMusic() {
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                // 尝试播放音乐（浏览器策略可能会阻止自动播放）
+                music.play().catch(error => {
+                    console.log('音乐播放被浏览器策略阻止，将在用户交互时尝试播放:', error);
+                });
+            }
+        }
+
+        // 页面加载完成后创建心形并尝试播放音乐
+        window.addEventListener('DOMContentLoaded', () => {
+            createHearts();
+            tryPlayMusic();
+            
+            // 为页面添加点击事件监听，在用户点击时尝试播放音乐
+            document.addEventListener('click', tryPlayMusic, { once: true });
+            document.addEventListener('touchstart', tryPlayMusic, { once: true });
+        });
+            // 播放音乐并导航到主页面
+        function playMusicAndNavigate() {
+            tryPlayMusic();
+            // 轻微延迟确保音乐有机会开始播放
+            setTimeout(() => {
+                window.location.href = 'index.html?fromGuide=true';
+            }, 100);
+        }
         
         // 页面离开时的效果
         window.addEventListener('beforeunload', () => {
