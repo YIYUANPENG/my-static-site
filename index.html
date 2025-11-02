@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>月白专属</title>
+    <script>
+        // 页面加载时检查是否需要重定向到引导页
+        // 仅在直接访问时不重定向，通过引导页跳转过来时会添加参数
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('fromGuide')) {
+                // 可以选择是否自动重定向
+                // window.location.href = 'guide.html';
+            }
+        });
+    </script>
+    <style>
+          * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+          }
+          
+          /* 心形漂浮元素样式 */
+          .hearts-container {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+              z-index: 0;
+              opacity: 0.7;
+          }
+          
+          .heart {
+              position: absolute;
+              bottom: -100px;
+              background-color: #ff6b81;
+              width: 20px;
+              height: 20px;
+              transform: rotate(45deg);
+              opacity: 0.6;
+              animation: floatUp linear infinite;
+          }
+          
+          .heart:before,
+          .heart:after {
+              content: '';
+              position: absolute;
+              background-color: #ff6b81;
+              border-radius: 50%;
+              width: 20px;
+              height: 20px;
+          }
+          
+          .heart:before {
+              top: -10px;
+              left: 0;
+          }
+          
+          .heart:after {
+              top: 0;
+              left: -10px;
+          }
+          
+          @keyframes floatUp {
+              0% {
+                  transform: translateY(0) rotate(45deg) scale(0.3);
+                  opacity: 0;
+              }
+              10% {
+                  opacity: 0.6;
+              }
+              90% {
+                  opacity: 0.6;
+              }
+              100% {
+                  transform: translateY(-100vh) rotate(45deg) scale(1);
+                  opacity: 0;
+              }
+          }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .header h1::after {
+            content: '❤️';
+            position: absolute;
+            right: -25px;
+            top: -5px;
+            font-size: 20px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .cards-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 120px);
+            overflow: visible;
+            padding-bottom: 80px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: absolute;
+            overflow: hidden;
+            transform: scale(0) rotate(0deg);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 120px;
+            max-width: 45%;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 14px;
+            z-index: 1;
+            cursor: pointer;
+        }
+        
+        .card.show {
+            transform: scale(1) rotate(var(--rotation));
+            opacity: 1;
+        }
+        
+        .card::before {
+            content: '💖 提示';
+            position: absolute;
+            top: -5px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            color: #ff6b81;
+            z-index: 2;
+        }
+        
+        /* 随机颜色将通过JavaScript设置 */
+        
+        .card:hover {
+            transform: scale(1.05) rotate(0deg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .more-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ff6b81;
+            color: white;
+            border: none;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(255, 107, 129, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .more-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(255, 107, 129, 0.4);
+        }
+        
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .music-icon {
+            font-size: 16px;
+            color: #ff6b81;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                overflow: hidden;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .cards-container {
+                height: calc(100vh - 120px);
+                overflow: hidden;
+            }
+            
+            .card {
+                padding: 10px 12px;
+                font-size: 12px;
+                /* 手机端卡片大小将由JS动态设置 */
+            }
+            
+            .card::before {
+                font-size: 9px;
+                top: -3px;
+                left: 8px;
+                padding: 1px 6px;
+            }
+            
+            .more-btn {
+                bottom: 15px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+                font-size: 12px;
+            }
+            
+            .music-control {
+                bottom: 15px;
+                left: 15px;
+                width: 30px;
+                height: 30px;
+            }
+            
+            .music-icon {
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                padding: 15px;
+                font-size: 14px;
+            }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- 心形漂浮元素容器 -->
+    <div class="hearts-container"></div>
+    <div class="header">
+        <h1>月白专属</h1>
+        <p>打开你的惊喜盒子</p>
+    </div>
+    
+    <div class="cards-container" id="cardsContainer">
+        <!-- 卡片内容将通过JavaScript动态生成 -->
+    </div>
+    
+    <button class="more-btn" id="moreBtn">更多</button>
+    
+    <button class="music-control" id="musicControl">
+        <span class="music-icon" id="musicIcon">🎵</span>
+    </button>
+    
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">×</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+    
+    <audio id="backgroundMusic" loop>
+        <source src="./background_music.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // 提示信息数组 - 更多内容以支持持续弹窗
+        const messages = [
+    "学会爱自己，世界也会对你温柔以待",
+    "今天的阳光，是否照亮了你的心房？",
+    "别熬夜，星星也需要休息",
+    "珍惜每一刻，时间是最美的礼物",
+    "别太累啦，生活需要偶尔的慵懒",
+    "要相信自己，你是自己的英雄",
+    "保持微笑，它会让你的世界更明亮",
+    "梦想成真，只要你不放弃追求",
+    "记得好好护肤，美丽从自我关爱开始",
+    "好好爱自己，因为你值得最好的",
+    "好好休息一下吧，身体和心灵都需要充电",
+    "每一天都是新的开始，带着希望前行",
+    "你值得被温柔对待，因为你是独一无二的",
+    "记得多喝水，保持生命的活力",
+    "保持好心情，让快乐成为你的习惯",
+    "你很棒，继续加油，未来属于你",
+    "生活因你而美好，你的存在就是奇迹",
+    "做自己喜欢的事，让热情点亮生活",
+    "记得按时吃饭，健康是幸福的基石",
+    "给自己一个拥抱，温暖来自内心的爱",
+    "你是独一无二的，世界因你而不同",
+    "勇敢做自己，你的不同造就了你的美",
+    "未来可期，梦想的路上你并不孤单",
+    "开心最重要，让笑声成为生活的主旋律",
+    "每一天都有小确幸，用心去发现它们",
+    "阳光总在风雨后，坚持就会看到彩虹",
+    "你是最棒的，你的努力终将开花结果",
+    "坚持就是胜利，每一个挑战都是成长的机会",
+    "健康最重要，它是一切美好的前提",
+    "快乐每一天，让生活充满阳光",
+    "享受当下，珍惜眼前的每一刻",
+    "相信美好，它会让你的世界更加光明",
+    "不忘初心，方得始终，坚持你的梦想",
+    "心存感激，感恩的心会吸引更多的幸福",
+    "生活充满希望，只要你愿意去追寻"
+];
+        
+        // ===== 弹窗配置参数 =====
+        // 用于控制弹窗的核心配置，影响弹窗频率、数量和显示效果
+        const popupConfig = {
+            totalCount: 100, // 总共弹窗次数
+            currentCount: 0, // 当前弹窗计数
+            minInterval: 100, // 最小间隔时间(ms) - 大幅缩短弹窗间隔
+            maxInterval: 300, // 最大间隔时间(ms) - 大幅缩短弹窗间隔
+            screenCoverageTarget: 0.8, // 目标屏幕覆盖率
+            activeCards: new Set() // 活跃卡片集合
+        };
+        
+        // 获取DOM元素
+        const cardsContainer = document.getElementById('cardsContainer');
+        const moreBtn = document.getElementById('moreBtn');
+        const musicControl = document.getElementById('musicControl');
+        const musicIcon = document.getElementById('musicIcon');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modalContent');
+        const closeModal = document.getElementById('closeModal');
+        
+        // ===== 卡片系统初始化 =====
+        // 功能：启动整个卡片展示系统，创建初始卡片并开始持续弹窗
+        // 策略：先批量创建初始卡片，然后启动持续弹窗流程
+        function initCards() {
+            // 定义统一的弹窗间隔时间（毫秒）
+            const popupInterval = 80;
+            
+            // 先显示第一批卡片 - 增加初始卡片数量以更快达到覆盖率
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    if (popupConfig.currentCount < popupConfig.totalCount) {
+                        createRandomCard();
+                    }
+                }, i * popupInterval); // 使用统一的间隔时间
+            }
+            
+            // 开始持续弹窗
+            startContinuousPopup(popupInterval);
+        }
+        
+        // ===== 持续弹窗控制函数 =====
+        // 核心功能：控制卡片的持续生成，根据当前覆盖率和计数决定是否继续弹窗
+        // 工作机制：递归调用，每次检查覆盖率和计数，控制弹窗节奏
+        // @param {number} interval - 统一的弹窗间隔时间（毫秒）
+        function startContinuousPopup(interval) {
+            if (popupConfig.currentCount >= popupConfig.totalCount) {
+                console.log('弹窗已完成目标次数');
+                return;
+            }
+            
+            // 检查当前覆盖率
+            const currentCoverage = checkScreenCoverage();
+            
+            if (currentCoverage < popupConfig.screenCoverageTarget) {
+                // 使用统一的间隔时间创建下一个卡片
+                setTimeout(() => {
+                    createRandomCard();
+                    startContinuousPopup(interval);
+                }, interval);
+            } else {
+                console.log('已达到目标覆盖率');
+                
+                // 即使达到覆盖率，也继续使用统一间隔时间弹窗以保持节奏一致性
+                setTimeout(() => {
+                    if (popupConfig.currentCount < popupConfig.totalCount) {
+                        createRandomCard();
+                        startContinuousPopup(interval);
+                    }
+                }, interval);
+            }
+        }
+        
+        // ===== 随机内容卡片生成 =====
+        // 功能：从消息数组中随机选择内容创建卡片
+        // 目的：确保每次弹窗内容多样化，避免重复
+        function createRandomCard() {
+            const randomIndex = Math.floor(Math.random() * messages.length);
+            createCard(messages[randomIndex], popupConfig.currentCount);
+        }
+        
+        // ===== 屏幕覆盖率计算 =====
+        // 功能：计算当前所有可见卡片覆盖屏幕的比例
+        // 算法：计算所有卡片与容器的重叠区域面积，除以容器总面积
+        // 用途：用于控制弹窗速度，达到目标覆盖率后减速
+        function checkScreenCoverage() {
+            const containerRect = cardsContainer.getBoundingClientRect();
+            const containerArea = containerRect.width * containerRect.height;
+            
+            let coveredArea = 0;
+            document.querySelectorAll('.card.show').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                // 只计算在容器内的部分
+                const intersectionArea = Math.max(0, Math.min(rect.right, containerRect.right) - Math.max(rect.left, containerRect.left)) *
+                                        Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
+                coveredArea += intersectionArea;
+            });
+            
+            return coveredArea / containerArea;
+        }
+        
+        // ===== 卡片创建函数 =====
+        // 核心功能：生成单个卡片元素，设置样式、位置和交互
+        // 技术要点：统一卡片尺寸、随机定位、添加动画效果、管理卡片生命周期
+        function createCard(message, index) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.textContent = message;
+            card.dataset.id = index;
+            
+            // 随机调整旋转角度
+            const rotation = (Math.random() * 8 - 4); // -4 到 4 度
+            card.style.setProperty('--rotation', `${rotation}deg`);
+            
+            // 随机调整卡片颜色
+            const colors = [
+                '#ffe5e5', '#e5f5ff', '#e5ffe5', '#fff5e5', 
+                '#f0e5ff', '#ffe5f0', '#e5fffa', '#fff0e5'
+            ];
+            const colorIndex = Math.floor(Math.random() * colors.length);
+            card.style.backgroundColor = colors[colorIndex];
+            
+            // 获取容器尺寸
+            const containerRect = cardsContainer.getBoundingClientRect();
+            
+            // 统一卡牌大小，根据设备类型调整
+            const isMobile = window.innerWidth <= 480;
+            const cardWidth = isMobile ? 120 : 160; // 统一宽度
+            const cardHeight = isMobile ? 80 : 100; // 统一高度
+            
+            // 设置卡片尺寸
+            card.style.width = `${cardWidth}px`;
+            card.style.minWidth = `${cardWidth}px`;
+            card.style.maxWidth = `${cardWidth}px`;
+            card.style.height = `${cardHeight}px`;
+            card.style.minHeight = `${cardHeight}px`;
+            
+            // 计算可用空间并留出边距
+            const maxLeft = containerRect.width - cardWidth - 10;
+            const maxTop = containerRect.height - cardHeight - 10;
+            
+            // 生成随机位置，确保卡片在容器内
+            const left = Math.max(10, Math.min(maxLeft, Math.floor(Math.random() * maxLeft)));
+            const top = Math.max(10, Math.min(maxTop, Math.floor(Math.random() * maxTop)));
+            
+            card.style.left = `${left}px`;
+            card.style.top = `${top}px`;
+            
+            // 确保新卡片总是叠在旧卡片之上
+            // 使用当前计数作为z-index，保证新创建的卡片有更高的层级
+            card.style.zIndex = popupConfig.currentCount;
+            
+            // 添加点击事件
+            card.addEventListener('click', () => {
+                showModal(message);
+                // 点击时提升z-index
+                card.style.zIndex = 200;
+            });
+            
+            // 添加到容器
+            cardsContainer.appendChild(card);
+            
+            // 更新活跃卡片集合
+            popupConfig.activeCards.add(card);
+            popupConfig.currentCount++;
+            
+            // 触发显示动画
+            setTimeout(() => {
+                card.classList.add('show');
+            }, 10);
+            
+            // 取消自动移除卡片的机制，确保所有弹窗都能保持显示在屏幕上
+            // 注意：当弹窗数量非常多时可能会影响性能，但这能确保用户看到所有弹窗
+        }
+        
+        // ===== 模态框显示功能 =====
+        // 功能：卡片点击时显示大图模式，突出显示消息内容
+        // 交互：阻止背景滚动，提升用户注意力
+        function showModal(message) {
+            modalContent.textContent = message;
+            modal.style.display = 'flex';
+            
+            // 阻止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // ===== 模态框关闭功能 =====
+        // 功能：隐藏模态框，恢复界面状态
+        // 注意：保持body为hidden，确保弹窗效果正常
+        function hideModal() {
+            modal.style.display = 'none';
+            // 保持body为hidden，确保弹窗效果正常
+            document.body.style.overflow = 'hidden';
+        }
+        
+        
+        // ===== 音乐播放控制 =====
+        // 功能：控制背景音乐的播放和暂停
+        // 交互：点击音乐图标时切换播放状态和图标样式
+        function toggleMusic() {
+            if (backgroundMusic.paused) {
+                backgroundMusic.play();
+                musicIcon.textContent = '🎶';
+            } else {
+                backgroundMusic.pause();
+                musicIcon.textContent = '🎵';
+            }
+        }
+        
+        // ===== 音频自动播放处理 =====
+        // 功能：页面加载后自动尝试播放背景音乐，设置错误处理和音量控制
+        // 注意：由于浏览器策略，自动播放可能失败，但不会影响核心功能
+        function attemptAutoPlay() {
+            // 只尝试一次
+            if (window.hasAttemptedPlay) return;
+            window.hasAttemptedPlay = true;
+            
+            // 添加错误处理，确保音乐加载失败不影响页面功能
+            backgroundMusic.addEventListener('error', () => {
+                console.log('音乐文件加载失败，但页面仍然可以正常使用');
+                musicControl.style.opacity = '0.5';
+            });
+            
+            // 尝试播放并设置音量
+            backgroundMusic.volume = 0.3; // 设置适当音量
+            backgroundMusic.play().then(() => {
+                console.log('音乐自动播放成功');
+                musicIcon.textContent = '🎶';
+            }).catch(e => {
+                console.log('自动播放失败，等待用户交互:', e);
+            });
+        }
+        
+        // ===== 页面初始化 =====
+        // 功能：页面加载完成后初始化所有功能模块
+        // 执行顺序：启动弹窗系统、配置交互事件、尝试音乐自动播放
+        document.addEventListener('DOMContentLoaded', () => {
+            // 启动持续弹窗
+            initCards();
+            
+            // 禁用更多按钮，因为现在是自动持续弹窗
+            moreBtn.style.display = 'none';
+            
+            // 音乐控制
+            musicControl.addEventListener('click', toggleMusic);
+            
+            // 模态框关闭
+            closeModal.addEventListener('click', hideModal);
+            
+            // 点击模态框外部关闭
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
+            
+            // 页面加载后立即尝试自动播放音乐，不再等待用户交互
+            attemptAutoPlay();
+            
+            // 保留用户交互监听器作为备选方案
+            document.addEventListener('click', attemptAutoPlay);
+            document.addEventListener('touchstart', attemptAutoPlay);
+            document.addEventListener('keydown', attemptAutoPlay);
+        });
+        
+        // ===== 鼠标交互效果 =====
+        // 功能：为卡片添加随鼠标移动的浮动效果，增强交互体验
+        // 原理：计算鼠标与卡片中心的距离，应用轻微的位置偏移
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.card.show');
+            cards.forEach((card, index) => {
+                // 如果不是悬停状态才应用效果
+                if (!card.matches(':hover')) {
+                    const rect = card.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const dx = (e.clientX - centerX) / 50;
+                    const dy = (e.clientY - centerY) / 50;
+                    
+                    // 轻微的移动效果
+                    const currentRotation = parseFloat(card.style.getPropertyValue('--rotation'));
+                    card.style.transform = `scale(1) rotate(${currentRotation}deg) translate(${dx}px, ${dy}px)`;
+                }
+            });
+        });
+        
+
+        
+        // ===== 页面滚动控制 =====
+        // 功能：禁用页面滚动，防止用户在弹窗过程中滚动页面
+        // 目的：确保弹窗效果的连贯性和视觉体验
+        document.body.style.overflow = 'hidden';
+        
+        // ===== 响应式布局处理 =====
+        // 功能：窗口大小改变时重新调整卡片位置，确保在可视区域内
+        // 优化：使用防抖技术避免频繁调整，提高性能
+        window.addEventListener('resize', () => {
+            // 防抖处理，避免频繁调整
+            if (window.resizeTimeout) clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(() => {
+                const cards = document.querySelectorAll('.card.show');
+                cards.forEach((card) => {
+                // 只调整位置，保持其他属性不变
+                const containerRect = cardsContainer.getBoundingClientRect();
+                const cardWidth = card.offsetWidth || 150;
+                const cardHeight = card.offsetHeight || 100;
+                
+                const maxLeft = containerRect.width - cardWidth - 10;
+                const maxTop = containerRect.height - cardHeight - 10;
+                
+                // 保持卡片在可见区域内
+                let currentLeft = parseFloat(card.style.left);
+                let currentTop = parseFloat(card.style.top);
+                
+                // 如果卡片超出边界，调整位置
+                if (currentLeft > maxLeft) currentLeft = maxLeft;
+                if (currentTop > maxTop) currentTop = maxTop;
+                
+                card.style.left = `${currentLeft}px`;
+                card.style.top = `${currentTop}px`;
+            });
+            }, 100); // 100ms防抖延迟
+        });
+        
+        // 创建随机漂浮的心形元素
+        function createHearts() {
+            const heartsContainer = document.querySelector('.hearts-container');
+            const numberOfHearts = Math.floor(window.innerWidth / 8); // 根据屏幕宽度决定心形数量，比引导页少一些
+            
+            for (let i = 0; i < numberOfHearts; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                
+                // 随机位置
+                heart.style.left = Math.random() * 100 + 'vw';
+                
+                // 随机动画持续时间
+                const animationDuration = 4 + Math.random() * 8; // 4-12秒
+                heart.style.animationDuration = animationDuration + 's';
+                
+                // 随机延迟
+                heart.style.animationDelay = Math.random() * 15 + 's';
+                
+                // 随机大小
+                const size = 4 + Math.random() * 10;
+                heart.style.width = size + 'px';
+                heart.style.height = size + 'px';
+                
+                // 调整伪元素大小以匹配心形大小
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .heart:nth-child(${i + 1}):before,
+                    .heart:nth-child(${i + 1}):after {
+                        width: ${size}px;
+                        height: ${size}px;
+                    }
+                    .heart:nth-child(${i + 1}):before {
+                        top: -${size / 2}px;
+                    }
+                    .heart:nth-child(${i + 1}):after {
+                        left: -${size / 2}px;
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // 随机颜色 - 使用更柔和的粉色系
+                const hue = Math.floor(Math.random() * 40) + 330; // 粉紫色到红色的范围
+                const saturation = Math.floor(Math.random() * 30) + 70; // 70-100%
+                const lightness = Math.floor(Math.random() * 20) + 65; // 65-85%
+                heart.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                
+                heartsContainer.appendChild(heart);
+                
+                // 动画结束后重新创建
+                heart.addEventListener('animationend', () => {
+                    heart.remove();
+                    setTimeout(() => {
+                        // 随机决定是否创建新的心形，避免数量过多
+                        if (Math.random() > 0.3) {
+                            createHearts();
+                        }
+                    }, Math.random() * 2000);
+                });
+            }
+        }
+        
+        // 在页面加载完成后创建心形背景
+        window.addEventListener('DOMContentLoaded', createHearts);
+    </script>
+    
+    <!-- 导航按钮区域 -->
+    <div style="position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-around; z-index: 1000; padding: 0 20px;">
+        <!-- 返回引导页按钮 -->
+        <button style="
+            background: linear-gradient(135deg, #ff6b81, #ffa502);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(255, 107, 129, 0.3);
+            transition: all 0.3s ease;
+        " onclick="window.location.href='guide.html'">
+            ← 返回
+        </button>
+        
+        <!-- 前往诗歌页面按钮 -->
+        <button style="
+            background: linear-gradient(135deg, #7b68ee, #9370db);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 6px 15px rgba(123, 104, 238, 0.4);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        " onclick="window.location.href='poem.html'">
+            友谊长诗
+        </button>
+    </div>
+    
+    <style>
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 6px 15px rgba(123, 104, 238, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 6px 25px rgba(123, 104, 238, 0.6);
+                transform: scale(1.05);
+            }
+            100% {
+                box-shadow: 0 6px 15px rgba(123, 104, 238, 0.4);
+                transform: scale(1);
+            }
+        }
+    </style>
+</body>
+</html>
